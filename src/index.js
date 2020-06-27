@@ -41,7 +41,7 @@ class Board extends React.Component {
             const index = j + i * 3;
             row.push(<span key={index}>{this.renderSquare(index)}</span>);
           }
-        boardRows.push(<div className="board-row" key="i">{row}</div>);
+        boardRows.push(<div className="board-row" key={i}>{row}</div>);
     }
 
     return (<div>{boardRows}</div>);
@@ -97,7 +97,7 @@ class Game extends React.Component {
     const squares = current.squares.slice();
     const move = calculateColRow(i);
     // ne pas re-render le Square s'il y a un vainqueur ou si la case a déjà une valeur
-    if (calculateWinner(squares) || squares[i]) {
+    if (hasNoWinner(squares) || calculateWinner(squares) || squares[i]) {
       return;
     }
     squares[i] = this.state.xIsNext ? 'X' : 'O';
@@ -125,7 +125,7 @@ class Game extends React.Component {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
-
+    const noWinner = hasNoWinner(current.squares);
     const moves = history.map((boardState, turn) => {
       const description = turn ? `Go to move #${turn} (${boardState.move.row},${boardState.move.col})` : 'Go to game start';
       return (
@@ -137,7 +137,10 @@ class Game extends React.Component {
       )
     })
     let status;
-    if (winner) {
+    if (noWinner) {
+      status = `no Winner`;
+    }
+    else if (winner) {
       status = `Winner: ${winner}`;
     } else {
       status = `Next player: ${this.state.xIsNext ? 'X' : 'O'}`;
@@ -194,6 +197,39 @@ function calculateWinner(squares) {
     }
   }
   return null;
+}
+
+function hasNoWinner(squares) {
+  /**
+   * Combinaisons gagnantes
+   */
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+
+  const res = Array(lines.length).fill(null);
+
+  for (let i = 0; i < lines.length; i++) {
+    const testLine = squares.filter((current, index) => lines[i].includes(index));
+    res[i] = (hasValue('X', testLine) && hasValue('O', testLine));
+  }
+  return res.every((current) => current === true);
+}
+
+/**
+ * Renvoie true si la ligne contient la valeur
+ * @param {*} value 
+ * @param {*} line 
+ */
+function hasValue(value, line) {
+  return line.some((current) => current === value);
 }
 
 function calculateColRow(index) {

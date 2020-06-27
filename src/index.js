@@ -31,6 +31,13 @@ import './index.css';
       );
     }
 
+    /**
+     * why IMMUTABILITY of state
+     * * save previous states -> undo/redo history  
+     * * easy to detect changes -> reference to object has changed == object has changed
+     * * **pure component** -> detect when to re-render 
+     * @param {*} i index du child Square
+     */
     handleClick(i) {
         const squares = this.state.squares.slice();
         squares[i] = 'X';

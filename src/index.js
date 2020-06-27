@@ -61,14 +61,33 @@ class Board extends React.Component {
  */
 class Game extends React.Component {
 
+  /**
+   * init - le jeu commence au tour zéro
+   * @param {*} props 
+   */
   constructor(props) {
     super(props);
     this.state = {
+      /**
+       * historique des coups joués
+       */
       history: [{
+        /**
+         * Etat des cases
+         */
         squares: Array(9).fill(null),
+        /**
+         * coup joué ce tour {col, row}
+         */
         move: null, 
       }],
+      /**
+       * true si c'est à 'X' de jouer
+       */
       xIsNext: true,
+      /**
+       * numéro du tour actuel
+       */
       stepNumber: 0,
     };
   }
@@ -120,7 +139,8 @@ class Game extends React.Component {
       return (
         // declare key as UUID for element in iterable
         <li key={turn}>
-          <button onClick={() => this.jumpTo(turn)}>{description}</button>
+          <button onClick={() => this.jumpTo(turn)} 
+          className={`button ${turn === this.state.stepNumber ? "selected" : ""}`}>{description}</button>
         </li>
       )
     })

@@ -127,7 +127,7 @@ class Game extends React.Component {
     const winner = calculateWinner(current.squares);
     const noWinner = hasNoWinner(current.squares);
     const moves = history.map((boardState, turn) => {
-      const description = turn ? `Go to move #${turn} (${boardState.move.row},${boardState.move.col})` : 'Go to game start';
+    const description = turn ? `Go to move #${turn} - ${(turn % 2) === 0 ? 'O' : 'X'} played (${boardState.move.row},${boardState.move.col}) ${(winner && turn === this.state.stepNumber) ? `- ${winner} won` : ''}` : 'Go to game start';
       return (
         // declare key as UUID for element in iterable
         <li key={turn}>

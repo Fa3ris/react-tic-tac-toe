@@ -34,25 +34,17 @@ class Board extends React.Component {
    * Affiche l'état des cases  
    */
   render() {
-    return (
-      <div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>
-    );
+    let boardRows = [];
+    for (let i = 0; i < 3; i++) {
+      const row = []
+          for (let j = 0; j < 3; j++) {
+            const index = j + i * 3;
+            row.push(<span key={index}>{this.renderSquare(index)}</span>);
+          }
+        boardRows.push(<div className="board-row" key="i">{row}</div>);
+    }
+
+    return (<div>{boardRows}</div>);
   }
 }
 

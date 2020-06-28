@@ -81,6 +81,10 @@ class Game extends React.Component {
        * numéro du tour actuel
        */
       stepNumber: 0,
+      /**
+       * ordre de tri
+       */
+      ascending: true
     };
   }
 
@@ -120,6 +124,12 @@ class Game extends React.Component {
     })
   }
 
+  toggleOrder() {
+    this.setState({
+      ascending : !this.state.ascending,
+    })
+  }
+
   render() {
 
     const history = this.state.history;
@@ -136,6 +146,9 @@ class Game extends React.Component {
         </li>
       )
     })
+    if(!this.state.ascending) {
+      moves.reverse();
+    }
     let status;
     if (noWinner) {
       status = `no Winner`;
@@ -155,6 +168,9 @@ class Game extends React.Component {
         <div className="game-info">
           <div>{status}</div>
           <ol>{moves}</ol>
+    <button  onClick={() => this.toggleOrder()}>
+      Toggle order - {`${this.state.ascending ? 'asc' : 'desc'}`}
+      </button>
         </div>
       </div>
     );

@@ -140,8 +140,11 @@ class Game extends React.Component {
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(getValues(current.squares));
     const noWinner = hasNoWinner(getValues(current.squares));
+    current.squares.forEach((currentObj, index) => {
+      currentObj.highlight = false;
+    });
     const moves = history.map((boardState, turn) => {
-    const description = turn ? `Go to move #${turn} - ${(turn % 2) === 0 ? 'O' : 'X'} played (${boardState.move.row},${boardState.move.col}) ${(winner && turn === this.state.stepNumber) ? `- ${winner} won` : ''}` : 'Go to game start';
+    const description = turn ? `Go to move #${turn} - ${(turn % 2) === 0 ? 'O' : 'X'} played (${boardState.move.row},${boardState.move.col})}` : 'Go to game start';
       return (
         // declare key as UUID for element in iterable
         <li key={turn}>
@@ -154,9 +157,7 @@ class Game extends React.Component {
       moves.reverse();
     }
 
-    current.squares.forEach((currentObj, index) => {
-      currentObj.highlight = false;
-    });
+    
 
     let status;
     if (noWinner) {

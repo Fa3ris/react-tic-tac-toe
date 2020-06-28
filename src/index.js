@@ -163,7 +163,7 @@ class Game extends React.Component {
       currentObj.highlight = false;
     });
     const moves = history.map((boardState, turn) => {
-    const description = turn ? `Go to move #${turn} - ${(turn % 2) === 0 ? 'O' : 'X'} played (${boardState.move.row},${boardState.move.col})}` : 'Go to game start';
+    const description = turn ? `Go to move #${turn} - ${(turn % 2) === 0 ? 'O' : 'X'} played (${boardState.move.row},${boardState.move.col})` : 'Go to game start';
       return (
         // declare key as UUID for element in iterable
         <li key={turn}>

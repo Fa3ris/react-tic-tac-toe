@@ -93,6 +93,13 @@ class Game extends React.Component {
   }
 
   /**
+  * Handler du clic sur une case  
+  * 
+  * * enregistre la case cliquée
+  * * ignore clic si partie terminée ou si case déjà cliquée
+  * * change de joueur
+  * * positionne la case cliquée comme dernier coup joué de l'historique, jette les coups suivants 
+  * 
   * why IMMUTABILITY of state
   * * save previous states -> undo/redo history  
   * * easy to detect changes -> reference to object has changed == object has changed
@@ -100,8 +107,10 @@ class Game extends React.Component {
   * @param {*} i index du child Square
   */
   handleClick(i) {
+    // récupère l'historique jusqu'au numéro du tour actuel, jette les tours suivants
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
+    // récupère copie pour conserver immutability
     const squares = current.squares.slice();
     const move = calculateColRow(i);
     // ne pas re-render le Square s'il y a un vainqueur ou si la case a déjà une valeur
@@ -119,6 +128,13 @@ class Game extends React.Component {
     });
   }
 
+  /**
+   * Retourne à un état de l'historique  
+   * MAJ :
+   * * n° du tour
+   * * joueur actuel
+   * @param {*} step 
+   */
   jumpTo(step) {
     this.setState({
       stepNumber: step,
@@ -128,6 +144,9 @@ class Game extends React.Component {
     })
   }
 
+  /**
+   * Inverse l'order de tri des moves
+   */
   toggleOrder() {
     this.setState({
       ascending : !this.state.ascending,
@@ -135,11 +154,11 @@ class Game extends React.Component {
   }
 
   render() {
-
     const history = this.state.history;
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(getValues(current.squares));
     const noWinner = hasNoWinner(getValues(current.squares));
+    // reset className "highlight"
     current.squares.forEach((currentObj, index) => {
       currentObj.highlight = false;
     });
@@ -156,16 +175,13 @@ class Game extends React.Component {
     if(!this.state.ascending) {
       moves.reverse();
     }
-
-    
-
     let status;
     if (noWinner) {
       status = `no Winner`;
     }
     else if (winner) {
       status = `Winner: ${winner}`;
-      const winningLine = calculateWinningLine(current.squares);
+      const winningLine = calculateWinningLine(getValues(current.squares));
       current.squares.forEach((currentObj, index) => {
         if (winningLine.includes(index)) {currentObj.highlight = true}
       });
@@ -205,87 +221,84 @@ ReactDOM.render(
  * @param {*} squares tableau des valeurs de chaque Square
  */
 function calculateWinner(squares) {
+  return calculateWinnerTemplate(squares, winningLine => squares[winningLine[0]]);
+}
 
-  /**
-   * Combinaisons gagnantes
-   */
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
+/**
+ * Retourne la liste des indices de la ligne gagnante, sinon null
+ * @param {*} squares 
+ */
+function calculateWinningLine(squares) {
+  return calculateWinnerTemplate(squares, winningLine => winningLine);
+}
+
+/**
+ * Template de fonction lorsqu'il y a une ligne gagnante
+ * @param {*} squares 
+ * @param {*} callback fonction à appeler s'il y a une ligne gagnante
+ */
+function calculateWinnerTemplate(squares, callback) {
+
+  const lines = getWinningCombinations();
+
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     // Les valeurs des trois cases sont identiques et non null
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a]; // symbole du vainqueur
+      return callback([a, b, c]);
     }
   }
   return null;
 }
 
-function calculateWinningLine(squares) {
-  /**
-   * Combinaisons gagnantes
-   */
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    // Les valeurs des trois cases sont identiques et non null
-    if (squares[a].value && squares[a].value === squares[b].value && squares[a].value === squares[c].value) {
-      return [a, b, c];
-    }
-  }
-}
-
+/**
+ * Retourne true s'il ne peut y avoir de vainqueur  
+ * Description : Vérifie qu'aucune combinaison ne peut être gagnée par un joueur  
+ * i.e. chaque ligne contient à la fois un 'X' et un 'O'
+ * @param {*} squares 
+ */
 function hasNoWinner(squares) {
-  /**
-   * Combinaisons gagnantes
-   */
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
 
-  const res = Array(lines.length).fill(null);
+  const winningCombinations = getWinningCombinations();
 
-  for (let i = 0; i < lines.length; i++) {
-    const testLine = squares.filter((current, index) => lines[i].includes(index));
+  const res = Array(winningCombinations.length).fill(null);
+
+  for (let i = 0; i < winningCombinations.length; i++) {
+    const testLine = squares.filter((current, index) => winningCombinations[i].includes(index));
     res[i] = (hasValue('X', testLine) && hasValue('O', testLine));
   }
   return res.every((current) => current === true);
 }
 
 /**
+ * Retourne les combinaisons gagnantes
+ */
+function getWinningCombinations() {
+  return [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+}
+
+/**
  * Renvoie true si la ligne contient la valeur
- * @param {*} value 
- * @param {*} line 
+ * @param {*} value valeur
+ * @param {*} line ligne
  */
 function hasValue(value, line) {
   return line.some((current) => current === value);
 }
 
+/**
+ * Retourne la colonne et la rangée de la case
+ * @param {*} index index de la case
+ */
 function calculateColRow(index) {
   const map = new Map();
   
@@ -302,6 +315,10 @@ function calculateColRow(index) {
   return map.get(index);
 }
 
+/**
+ * Retourne les valeurs de chaque case
+ * @param {*} squares les cases
+ */
 function getValues(squares) {
   return squares.map(current => current.value);
 }

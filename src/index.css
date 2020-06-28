@@ -52,3 +52,7 @@ body {
   .button.selected {
     font-weight: bold;
   }
+
+  .square.highlight {
+    color: rgb(255, 122, 122);
+  }

@@ -10,7 +10,7 @@ import './index.css';
  */
 function Square(props) {
   return (
-    <button className="square"
+    <button className={`square ${props.highlight ? "highlight" : ""}`}
       onClick={props.onClick}>
       {props.value}
     </button>
@@ -24,8 +24,9 @@ class Board extends React.Component {
 
   renderSquare(i) {
     return (
-      <Square value={this.props.squares[i]}
+      <Square value={this.props.squares[i].value}
         onClick={() => this.props.onClick(i)}
+        highlight={this.props.squares[i].highlight}
       />
     );
   }
@@ -67,7 +68,10 @@ class Game extends React.Component {
         /**
          * Etat des cases
          */
-        squares: Array(9).fill(null),
+        squares: Array(9).fill({
+          value: null,
+          highlight: false,
+        }),
         /**
          * coup joué ce tour {col, row}
          */
@@ -101,10 +105,10 @@ class Game extends React.Component {
     const squares = current.squares.slice();
     const move = calculateColRow(i);
     // ne pas re-render le Square s'il y a un vainqueur ou si la case a déjà une valeur
-    if (hasNoWinner(squares) || calculateWinner(squares) || squares[i]) {
+    if (hasNoWinner(getValues(squares)) || calculateWinner(getValues(squares)) || squares[i].value) {
       return;
     }
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    squares[i] = { ...squares[i], value: this.state.xIsNext ? 'X' : 'O'};
     this.setState({
       history: history.concat([{
         squares: squares,
@@ -134,8 +138,8 @@ class Game extends React.Component {
 
     const history = this.state.history;
     const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
-    const noWinner = hasNoWinner(current.squares);
+    const winner = calculateWinner(getValues(current.squares));
+    const noWinner = hasNoWinner(getValues(current.squares));
     const moves = history.map((boardState, turn) => {
     const description = turn ? `Go to move #${turn} - ${(turn % 2) === 0 ? 'O' : 'X'} played (${boardState.move.row},${boardState.move.col}) ${(winner && turn === this.state.stepNumber) ? `- ${winner} won` : ''}` : 'Go to game start';
       return (
@@ -149,12 +153,21 @@ class Game extends React.Component {
     if(!this.state.ascending) {
       moves.reverse();
     }
+
+    current.squares.forEach((currentObj, index) => {
+      currentObj.highlight = false;
+    });
+
     let status;
     if (noWinner) {
       status = `no Winner`;
     }
     else if (winner) {
       status = `Winner: ${winner}`;
+      const winningLine = calculateWinningLine(current.squares);
+      current.squares.forEach((currentObj, index) => {
+        if (winningLine.includes(index)) {currentObj.highlight = true}
+      });
     } else {
       status = `Next player: ${this.state.xIsNext ? 'X' : 'O'}`;
     }
@@ -215,6 +228,30 @@ function calculateWinner(squares) {
   return null;
 }
 
+function calculateWinningLine(squares) {
+  /**
+   * Combinaisons gagnantes
+   */
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    // Les valeurs des trois cases sont identiques et non null
+    if (squares[a].value && squares[a].value === squares[b].value && squares[a].value === squares[c].value) {
+      return [a, b, c];
+    }
+  }
+}
+
 function hasNoWinner(squares) {
   /**
    * Combinaisons gagnantes
@@ -262,4 +299,8 @@ function calculateColRow(index) {
   map.set(8, {row: 2, col: 2});
 
   return map.get(index);
+}
+
+function getValues(squares) {
+  return squares.map(current => current.value);
 }
